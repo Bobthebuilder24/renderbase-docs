@@ -41,11 +41,6 @@
   ],
   "anchors": [
     {
-      "name": "GitHub",
-      "icon": "github",
-      "url": "https://github.com/Bobthebuilder24/renderbase-api"
-    },
-    {
       "name": "Status",
       "icon": "signal",
       "url": "https://api.renderbase.app/health"
@@ -74,9 +69,7 @@
       "pages": ["guides/invoices"]
     }
   ],
-  "footerSocials": {
-    "github": "https://github.com/Bobthebuilder24/renderbase-api"
-  },
+  "footerSocials": {},
   "api": {
     "baseUrl": "https://api.renderbase.app"
   }
