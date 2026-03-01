@@ -1,0 +1,54 @@
+---
+title: 'Quickstart'
+description: 'Generate your first PDF in under 2 minutes'
+---
+
+## 1. Get your API key
+
+No credit card required. Just your email.
+
+```bash
+curl -s https://api.renderbase.app/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
+```
+
+```json
+{
+  "api_key": "pk_live_abc123...",
+  "plan": "free",
+  "monthly_limit": 100,
+  "message": "Save this key — it won't be shown again."
+}
+```
+
+<Warning>Copy your API key now. It is only shown once.</Warning>
+
+## 2. Render a PDF
+
+```bash
+curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"html": "<h1>Hello World</h1><p>My first PDF.</p>"}'
+```
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "url": "https://signed-download-url...",
+  "size_bytes": 12340,
+  "render_time_ms": 185,
+  "expires_at": "2026-03-01T16:00:00.000Z"
+}
+```
+
+## 3. Download your PDF
+
+Open the `url` from the response in your browser. That's it.
+
+The signed URL expires after 1 hour. Use the [documents endpoint](/api-reference/documents) to get a fresh URL anytime.
+
+<Card title="Next: Full API Reference" icon="book" href="/api-reference/render">
+  See all render options, error codes, and response headers.
+</Card>

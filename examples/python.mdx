@@ -1,0 +1,115 @@
+---
+title: 'Python'
+description: 'Generate PDFs from Python using the requests library'
+---
+
+## Basic render
+
+```python
+import requests
+
+API_KEY = "pk_live_YOUR_KEY"
+BASE_URL = "https://api.renderbase.app"
+
+def render_pdf(html: str, options: dict = None) -> dict:
+    res = requests.post(
+        f"{BASE_URL}/v1/render",
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+        },
+        json={"html": html, "options": options or {}},
+    )
+    res.raise_for_status()
+    return res.json()
+
+result = render_pdf("<h1>Hello from Python</h1>")
+print(result["url"])
+```
+
+## Render and save to file
+
+```python
+import requests
+
+API_KEY = "pk_live_YOUR_KEY"
+BASE_URL = "https://api.renderbase.app"
+
+def render_and_save(html: str, output_path: str):
+    res = requests.post(
+        f"{BASE_URL}/v1/render",
+        headers={
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY,
+        },
+        json={"html": html},
+    )
+    res.raise_for_status()
+    url = res.json()["url"]
+
+    pdf = requests.get(url)
+    with open(output_path, "wb") as f:
+        f.write(pdf.content)
+
+    print(f"Saved to {output_path}")
+
+render_and_save(
+    "<h1>Invoice #1042</h1><p>Amount due: $99.00</p>",
+    "invoice.pdf",
+)
+```
+
+## With render options
+
+```python
+result = render_pdf(
+    "<h1>Landscape Report</h1>",
+    options={
+        "format": "Letter",
+        "landscape": True,
+        "margin": {
+            "top": "15mm",
+            "right": "10mm",
+            "bottom": "15mm",
+            "left": "10mm",
+        },
+    },
+)
+```
+
+## Check usage headers
+
+```python
+res = requests.post(
+    f"{BASE_URL}/v1/render",
+    headers={"Content-Type": "application/json", "x-api-key": API_KEY},
+    json={"html": "<h1>Track usage</h1>"},
+)
+
+print(f"Monthly usage: {res.headers['X-Monthly-Usage']}")
+print(f"Monthly limit: {res.headers['X-Monthly-Limit']}")
+print(f"Rate limit remaining: {res.headers['X-RateLimit-Remaining']}")
+```
+
+## Error handling
+
+```python
+def render_safe(html: str) -> dict | None:
+    res = requests.post(
+        f"{BASE_URL}/v1/render",
+        headers={"Content-Type": "application/json", "x-api-key": API_KEY},
+        json={"html": html},
+    )
+
+    if res.status_code == 429:
+        error = res.json()["error"]
+        print(f"Rate limited: {error['message']}")
+        return None
+
+    if not res.ok:
+        error = res.json()["error"]
+        print(f"Error: {error['code']} — {error['message']}")
+        return None
+
+    return res.json()
+```

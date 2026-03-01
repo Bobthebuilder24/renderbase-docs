@@ -1,0 +1,151 @@
+---
+title: 'Go'
+description: 'Generate PDFs from Go using net/http (zero dependencies)'
+---
+
+## Basic render
+
+```go
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+)
+
+const (
+	apiKey  = "pk_live_YOUR_KEY"
+	baseURL = "https://api.renderbase.app"
+)
+
+type RenderRequest struct {
+	HTML    string         `json:"html"`
+	Options map[string]any `json:"options,omitempty"`
+}
+
+type RenderResponse struct {
+	ID           string `json:"id"`
+	URL          string `json:"url"`
+	SizeBytes    int    `json:"size_bytes"`
+	RenderTimeMs int    `json:"render_time_ms"`
+	ExpiresAt    string `json:"expires_at"`
+}
+
+type ErrorResponse struct {
+	Error struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+func renderPDF(html string) (*RenderResponse, error) {
+	body, _ := json.Marshal(RenderRequest{HTML: html})
+
+	req, _ := http.NewRequest("POST", baseURL+"/v1/render", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", apiKey)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 201 {
+		var errRes ErrorResponse
+		json.NewDecoder(res.Body).Decode(&errRes)
+		return nil, fmt.Errorf("%s: %s", errRes.Error.Code, errRes.Error.Message)
+	}
+
+	var result RenderResponse
+	json.NewDecoder(res.Body).Decode(&result)
+	return &result, nil
+}
+
+func main() {
+	result, err := renderPDF("<h1>Hello from Go</h1>")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(result.URL)
+}
+```
+
+## Render and save to file
+
+```go
+func renderAndSave(html, outputPath string) error {
+	result, err := renderPDF(html)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.Get(result.URL)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	f, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = io.Copy(f, res.Body)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Saved to %s\n", outputPath)
+	return nil
+}
+```
+
+## With render options
+
+```go
+func renderWithOptions(html string, options map[string]any) (*RenderResponse, error) {
+	body, _ := json.Marshal(RenderRequest{HTML: html, Options: options})
+
+	req, _ := http.NewRequest("POST", baseURL+"/v1/render", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", apiKey)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 201 {
+		var errRes ErrorResponse
+		json.NewDecoder(res.Body).Decode(&errRes)
+		return nil, fmt.Errorf("%s: %s", errRes.Error.Code, errRes.Error.Message)
+	}
+
+	var result RenderResponse
+	json.NewDecoder(res.Body).Decode(&result)
+	return &result, nil
+}
+
+// Usage:
+// renderWithOptions("<h1>Report</h1>", map[string]any{
+//     "format":    "Letter",
+//     "landscape": true,
+// })
+```
+
+## Check usage headers
+
+```go
+res, _ := http.DefaultClient.Do(req)
+fmt.Println("Monthly usage:", res.Header.Get("X-Monthly-Usage"))
+fmt.Println("Monthly limit:", res.Header.Get("X-Monthly-Limit"))
+fmt.Println("Rate limit remaining:", res.Header.Get("X-RateLimit-Remaining"))
+```

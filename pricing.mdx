@@ -1,0 +1,56 @@
+---
+title: 'Pricing'
+description: 'Simple, predictable pricing that scales with you'
+---
+
+## Plans
+
+| | Free | Starter | Pro | Scale |
+|---|---|---|---|---|
+| **Monthly renders** | 100 | 500 | 2,500 | 10,000 |
+| **Rate limit** | 30/min | 30/min | 30/min | 30/min |
+| **PDF size limit** | 2MB HTML | 2MB HTML | 2MB HTML | 2MB HTML |
+| **Signed URL expiry** | 1 hour | 1 hour | 1 hour | 1 hour |
+| **Support** | Community | Email | Priority | Priority |
+| **Price** | $0 | Usage-based | Usage-based | Usage-based |
+
+## Getting started
+
+Every account starts on the **Free** plan with 100 renders/month. No credit card required.
+
+```bash
+curl -s https://api.renderbase.app/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
+```
+
+## Upgrading
+
+Upgrade anytime with a single API call:
+
+```bash
+curl -s https://api.renderbase.app/v1/upgrade \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"plan": "pro"}'
+```
+
+```json
+{
+  "plan": "pro",
+  "monthly_limit": 2500,
+  "subscription_id": "sub_..."
+}
+```
+
+Valid plan names: `starter`, `pro`, `scale`.
+
+## Billing
+
+- Paid plans are billed through Stripe with metered usage tracking.
+- Usage resets monthly.
+- Monitor your consumption via `X-Monthly-Usage` and `X-Monthly-Limit` response headers on every authenticated request.
+
+## Need more?
+
+If you need more than 10,000 renders/month or custom limits, reach out at **billing@renderbase.dev**.

@@ -1,0 +1,96 @@
+---
+title: 'cURL'
+description: 'Common cURL examples for the RenderBase API'
+---
+
+## Sign up
+
+```bash
+curl -s https://api.renderbase.app/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com"}'
+```
+
+## Simple render
+
+```bash
+curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"html": "<h1>Hello World</h1>"}'
+```
+
+## Render with options
+
+```bash
+curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{
+    "html": "<h1>Report</h1><p>Q1 2026 Results</p>",
+    "options": {
+      "format": "Letter",
+      "landscape": true,
+      "margin": {
+        "top": "25mm",
+        "right": "15mm",
+        "bottom": "25mm",
+        "left": "15mm"
+      }
+    }
+  }'
+```
+
+## Render and download in one command
+
+```bash
+URL=$(curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"html": "<h1>Download me</h1>"}' | jq -r '.url')
+
+curl -o output.pdf "$URL"
+```
+
+## Get a fresh download URL
+
+```bash
+curl -s https://api.renderbase.app/v1/documents/YOUR_DOCUMENT_ID \
+  -H "x-api-key: pk_live_YOUR_KEY"
+```
+
+## Check rate limit headers
+
+```bash
+curl -si https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"html": "<h1>Check headers</h1>"}' | grep -i "x-"
+```
+
+Output:
+```
+X-Monthly-Usage: 42
+X-Monthly-Limit: 2500
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 29
+```
+
+## Upgrade plan
+
+```bash
+curl -s https://api.renderbase.app/v1/upgrade \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"plan": "pro"}'
+```
+
+## Health check
+
+```bash
+curl -s https://api.renderbase.app/health
+```
+
+```json
+{"status": "ok"}
+```

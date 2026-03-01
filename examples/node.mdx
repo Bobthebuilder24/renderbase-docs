@@ -1,0 +1,129 @@
+---
+title: 'Node.js'
+description: 'Generate PDFs from Node.js using fetch (zero dependencies)'
+---
+
+## Basic render
+
+```javascript
+const API_KEY = "pk_live_YOUR_KEY";
+const BASE_URL = "https://api.renderbase.app";
+
+async function renderPdf(html, options = {}) {
+  const res = await fetch(`${BASE_URL}/v1/render`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+    },
+    body: JSON.stringify({ html, options }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(`${error.error.code}: ${error.error.message}`);
+  }
+
+  return res.json();
+}
+
+const result = await renderPdf("<h1>Hello from Node.js</h1>");
+console.log(result.url);
+```
+
+## Render and save to file
+
+```javascript
+import { writeFile } from "node:fs/promises";
+
+const API_KEY = "pk_live_YOUR_KEY";
+const BASE_URL = "https://api.renderbase.app";
+
+async function renderAndSave(html, outputPath) {
+  const res = await fetch(`${BASE_URL}/v1/render`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+    },
+    body: JSON.stringify({ html }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(`${error.error.code}: ${error.error.message}`);
+  }
+
+  const { url } = await res.json();
+
+  const pdf = await fetch(url);
+  const buffer = Buffer.from(await pdf.arrayBuffer());
+  await writeFile(outputPath, buffer);
+
+  console.log(`Saved to ${outputPath}`);
+}
+
+await renderAndSave(
+  "<h1>Invoice #1042</h1><p>Amount due: $99.00</p>",
+  "invoice.pdf"
+);
+```
+
+## With render options
+
+```javascript
+const result = await renderPdf(
+  "<h1>Landscape Report</h1><p>Wide format content here.</p>",
+  {
+    format: "Letter",
+    landscape: true,
+    margin: { top: "15mm", right: "10mm", bottom: "15mm", left: "10mm" },
+  }
+);
+```
+
+## Check usage headers
+
+```javascript
+const res = await fetch(`${BASE_URL}/v1/render`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": API_KEY,
+  },
+  body: JSON.stringify({ html: "<h1>Track usage</h1>" }),
+});
+
+console.log("Monthly usage:", res.headers.get("X-Monthly-Usage"));
+console.log("Monthly limit:", res.headers.get("X-Monthly-Limit"));
+console.log("Rate limit remaining:", res.headers.get("X-RateLimit-Remaining"));
+```
+
+## Error handling
+
+```javascript
+async function renderSafe(html) {
+  const res = await fetch(`${BASE_URL}/v1/render`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+    },
+    body: JSON.stringify({ html }),
+  });
+
+  if (res.status === 429) {
+    const retryAfter = res.headers.get("Retry-After");
+    console.log(`Rate limited. Retry after ${retryAfter}s`);
+    return null;
+  }
+
+  if (!res.ok) {
+    const { error } = await res.json();
+    console.error(`Error: ${error.code} — ${error.message}`);
+    return null;
+  }
+
+  return res.json();
+}
+```

@@ -1,0 +1,82 @@
+---
+title: 'Authentication'
+description: 'API keys, rate limits, and usage tracking'
+---
+
+## API Keys
+
+Every request to authenticated endpoints requires an `x-api-key` header.
+
+```bash
+curl https://api.renderbase.app/v1/render \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"html": "<h1>Hello</h1>"}'
+```
+
+### Key format
+
+All keys start with `pk_live_` followed by a random string. Example:
+
+```
+pk_live_4X20H5dGNrZfUsrngWjMF6dgTGgauHbG1S60CFz6zTo
+```
+
+### Key security
+
+- Keys are shown **once** at creation. Store them securely.
+- Keys are SHA-256 hashed before storage. We never store plaintext keys.
+- If your key is compromised, contact support for revocation.
+
+## Rate Limits
+
+Two layers of rate limiting protect the API:
+
+| Scope | Limit | Keyed on |
+|-------|-------|----------|
+| Global | 100 requests/min | IP address |
+| Render | 30 requests/min | API key |
+
+When you hit a rate limit, you'll receive a `429` response:
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "Too many requests"
+  }
+}
+```
+
+## Response Headers
+
+Every authenticated response includes usage headers so you can track consumption without extra API calls.
+
+### All authenticated routes
+
+| Header | Description | Example |
+|--------|-------------|---------|
+| `X-Monthly-Usage` | Renders used this billing period | `42` |
+| `X-Monthly-Limit` | Your plan's monthly render cap | `2500` |
+
+### Render routes only
+
+| Header | Description | Example |
+|--------|-------------|---------|
+| `X-RateLimit-Limit` | Max renders per minute | `30` |
+| `X-RateLimit-Remaining` | Renders left in this window | `28` |
+
+## Monthly Limits
+
+Each plan has a monthly render limit. When you exceed it, render requests return `429`:
+
+```json
+{
+  "error": {
+    "code": "LIMIT_EXCEEDED",
+    "message": "Monthly render limit exceeded"
+  }
+}
+```
+
+Check `X-Monthly-Usage` and `X-Monthly-Limit` headers to monitor your consumption proactively.

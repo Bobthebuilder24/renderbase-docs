@@ -1,0 +1,186 @@
+---
+title: 'Generate Invoices'
+description: 'Create professional invoices in 3 minutes'
+---
+
+## The template
+
+Here's a production-ready HTML invoice template. It uses inline CSS for maximum compatibility — no external dependencies.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Inter, sans-serif; color: #1a1a2e; padding: 48px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 40px; padding-bottom: 24px; border-bottom: 3px solid #6c63ff;
+  }
+  header h1 { font-size: 28px; color: #6c63ff; }
+  .badge {
+    background: #6c63ff; color: #fff; padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 36px; }
+  .meta-card {
+    background: #f8f9fc; border-radius: 12px; padding: 20px;
+  }
+  .meta-card label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: #888; display: block; margin-bottom: 4px;
+  }
+  .meta-card span { font-size: 15px; font-weight: 600; }
+  .meta-card p { color: #666; font-size: 13px; margin-top: 4px; }
+  table {
+    width: 100%; border-collapse: collapse; margin-bottom: 36px;
+    border-radius: 12px; overflow: hidden;
+  }
+  th {
+    background: #6c63ff; color: #fff; text-align: left; padding: 14px 20px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  td { padding: 14px 20px; border-bottom: 1px solid #f0f0f5; font-size: 14px; }
+  tr:last-child td { border-bottom: none; }
+  .amount { text-align: right; font-weight: 600; }
+  .totals { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+  .totals-box {
+    background: #1a1a2e; color: #fff; border-radius: 12px;
+    padding: 24px 32px; min-width: 280px;
+  }
+  .totals-row {
+    display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px;
+  }
+  .totals-row.total {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    margin-top: 8px; padding-top: 12px; font-size: 18px; font-weight: 700;
+  }
+  .totals-row.total .value { color: #6c63ff; }
+  footer {
+    text-align: center; padding-top: 24px;
+    border-top: 1px solid #e8e8f0; color: #999; font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>YourCompany</h1>
+      <p style="color:#666;font-size:13px;margin-top:4px">Invoice #INV-2026-0042</p>
+    </div>
+    <div class="badge">PAID</div>
+  </header>
+
+  <div class="meta">
+    <div class="meta-card">
+      <label>Billed To</label>
+      <span>Acme Corp</span>
+      <p>alex@acmecorp.io</p>
+    </div>
+    <div class="meta-card">
+      <label>Invoice Date</label>
+      <span>March 1, 2026</span>
+      <p>Due: March 31, 2026</p>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th class="amount">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pro Plan — Monthly</td>
+        <td>1</td>
+        <td>$49.00</td>
+        <td class="amount">$49.00</td>
+      </tr>
+      <tr>
+        <td>Additional renders (1,240 @ $0.02)</td>
+        <td>1,240</td>
+        <td>$0.02</td>
+        <td class="amount">$24.80</td>
+      </tr>
+      <tr>
+        <td>Priority support add-on</td>
+        <td>1</td>
+        <td>$19.00</td>
+        <td class="amount">$19.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="totals-box">
+      <div class="totals-row"><span>Subtotal</span><span>$92.80</span></div>
+      <div class="totals-row"><span>Tax (8%)</span><span>$7.42</span></div>
+      <div class="totals-row total"><span>Total</span><span class="value">$100.22</span></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Thank you for your business.</p>
+    <p style="margin-top:6px">Questions? Contact billing@yourcompany.com</p>
+  </footer>
+</body>
+</html>
+```
+
+## Render it
+
+<CodeGroup>
+```bash cURL
+curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{"html": "PASTE_MINIFIED_HTML_HERE"}' | jq .
+```
+
+```javascript Node.js
+const html = `<!-- paste the template above -->`;
+
+const res = await fetch("https://api.renderbase.app/v1/render", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": "pk_live_YOUR_KEY",
+  },
+  body: JSON.stringify({ html }),
+});
+
+const { url } = await res.json();
+console.log("Download:", url);
+```
+
+```python Python
+import requests
+
+html = """<!-- paste the template above -->"""
+
+res = requests.post(
+    "https://api.renderbase.app/v1/render",
+    headers={
+        "Content-Type": "application/json",
+        "x-api-key": "pk_live_YOUR_KEY",
+    },
+    json={"html": html},
+)
+
+print("Download:", res.json()["url"])
+```
+</CodeGroup>
+
+## Tips
+
+- **Use inline CSS.** External stylesheets work but add latency. Inline styles render fastest.
+- **Google Fonts work.** The `@import url(...)` pattern loads web fonts during rendering.
+- **Use `printBackground: true`** (the default) to keep background colors in the PDF.
+- **Test your HTML locally first.** Open it in a browser to preview before sending to the API.
+- **Keep HTML under 2MB.** For large documents, consider splitting into multiple pages.

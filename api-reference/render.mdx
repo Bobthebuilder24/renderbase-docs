@@ -1,0 +1,127 @@
+---
+title: 'Render PDF'
+description: 'Convert HTML to a PDF document'
+api: 'POST /v1/render'
+---
+
+## Request
+
+<ParamField header="x-api-key" type="string" required>
+  Your API key. Starts with `pk_live_`.
+</ParamField>
+
+<ParamField body="html" type="string" required>
+  The HTML content to render as a PDF. Maximum 2MB.
+</ParamField>
+
+<ParamField body="options" type="object">
+  Optional rendering configuration.
+
+  <Expandable title="options properties">
+    <ParamField body="options.format" type="string" default="A4">
+      Page size. One of `A4` or `Letter`.
+    </ParamField>
+
+    <ParamField body="options.landscape" type="boolean" default="false">
+      Render in landscape orientation.
+    </ParamField>
+
+    <ParamField body="options.margin" type="object" default="20mm all sides">
+      Page margins with `top`, `right`, `bottom`, `left` as CSS strings (e.g. `"20mm"`).
+    </ParamField>
+
+    <ParamField body="options.printBackground" type="boolean" default="true">
+      Include CSS background colors and images.
+    </ParamField>
+
+    <ParamField body="options.displayHeaderFooter" type="boolean">
+      Show header and footer on each page.
+    </ParamField>
+
+    <ParamField body="options.headerTemplate" type="string">
+      HTML template for the page header. Supports Chromium template classes:
+      `date`, `title`, `url`, `pageNumber`, `totalPages`.
+    </ParamField>
+
+    <ParamField body="options.footerTemplate" type="string">
+      HTML template for the page footer. Same template classes as header.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="string">
+  Unique document ID (UUID v4).
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  Signed download URL. Expires after 1 hour.
+</ResponseField>
+
+<ResponseField name="size_bytes" type="number">
+  PDF file size in bytes.
+</ResponseField>
+
+<ResponseField name="render_time_ms" type="number">
+  Time taken to render the PDF in milliseconds.
+</ResponseField>
+
+<ResponseField name="expires_at" type="string">
+  ISO 8601 timestamp when the signed URL expires.
+</ResponseField>
+
+<RequestExample>
+```bash
+curl -s https://api.renderbase.app/v1/render \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: pk_live_YOUR_KEY" \
+  -d '{
+    "html": "<h1>Invoice #1042</h1><p>Amount: $99.00</p>",
+    "options": {
+      "format": "Letter",
+      "margin": {
+        "top": "25mm",
+        "right": "20mm",
+        "bottom": "25mm",
+        "left": "20mm"
+      }
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "url": "https://r2.example.com/signed?token=abc",
+  "size_bytes": 45321,
+  "render_time_ms": 230,
+  "expires_at": "2026-03-01T16:00:00.000Z"
+}
+```
+</ResponseExample>
+
+## Errors
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 400 | `INVALID_HTML` | `html` field is missing or not a string |
+| 400 | `HTML_TOO_LARGE` | HTML exceeds the 2MB limit |
+| 400 | `INVALID_OPTIONS` | `options` object contains invalid values |
+| 408 | `RENDER_TIMEOUT` | Rendering exceeded the 10-second timeout |
+| 429 | `RATE_LIMITED` | Too many requests per minute |
+| 429 | `LIMIT_EXCEEDED` | Monthly render limit reached |
+| 500 | `RENDER_FAILED` | Internal rendering error |
+
+All errors return:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable description"
+  }
+}
+```
