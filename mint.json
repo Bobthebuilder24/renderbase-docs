@@ -39,13 +39,6 @@
       "url": "guides"
     }
   ],
-  "anchors": [
-    {
-      "name": "Status",
-      "icon": "signal",
-      "url": "https://api.renderbase.app/health"
-    }
-  ],
   "navigation": [
     {
       "group": "Get Started",
